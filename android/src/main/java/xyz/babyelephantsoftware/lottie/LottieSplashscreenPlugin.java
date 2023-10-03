@@ -11,6 +11,13 @@ public class LottieSplashscreenPlugin extends Plugin {
 
     private LottieSplashscreen implementation = new LottieSplashscreen();
 
+    @Override
+    public void load() {
+        try {
+            implementation.createView();
+        } catch (Exception e) {}
+    }
+
     @PluginMethod
     public void echo(PluginCall call) {
         String value = call.getString("value");
@@ -18,5 +25,13 @@ public class LottieSplashscreenPlugin extends Plugin {
         JSObject ret = new JSObject();
         ret.put("value", implementation.echo(value));
         call.resolve(ret);
+    }
+
+    @PluginMethod
+    public void show(PluginCall call) {
+        String location = call.getString("location");
+        Boolean remote = call.getBoolean("remote");
+        Double width = call.getDouble("width");
+        Double height = call.getDouble("height");
     }
 }

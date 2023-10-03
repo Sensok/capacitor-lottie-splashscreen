@@ -8,4 +8,6 @@ public class LottieSplashscreen {
         Log.i("Echo", value);
         return value;
     }
+
+    public void createView() {}
 }

@@ -24,7 +24,7 @@ public class LottieSplashscreenPlugin: CAPPlugin {
     }
     
     @objc func pageDidLoad() {
-        let autoHide = getConfigValue("LottieAutoHideSplashScreen".lowercased()) as? Bool
+        let autoHide = getConfig().getBoolean("LottieAutoHideSplashScreen".lowercased(), false)
         if autoHide {
             destroyView()
         }
@@ -38,94 +38,94 @@ public class LottieSplashscreenPlugin: CAPPlugin {
     
     @objc private func destroyView(_: UITapGestureRecognizer? = nil) {
         if visible {
-            let fadeOutDuation = Double(getConfigValue("LottieFadeOutDuration".lowercased()) as? String ?? "0")!
+            let fadeOutDuation = Double(getConfig().getString("LottieFadeOutDuration".lowercased(), "0")!)!
             if fadeOutDuation > 0 {
                 UIView.animate(withDuration: fadeOutDuation, animations: {
                     self.animationView?.alpha = 0.0
                 }, completion: { _ in
-                    self.removeView()
+                    //self.removeView()
                 })
             } else {
-                removeView()
+                //removeView()
             }
         }
     }
+//
+//    private func removeView() {
+//          let parentView = viewController.view
+//          parentView?.isUserInteractionEnabled = true
+//
+//          animationView?.removeFromSuperview()
+//          animationViewContainer?.removeFromSuperview()
+//
+//          animationViewContainer = nil
+//          animationView = nil
+//          visible = false
+//
+//          sendCallback()
+//      }
     
-    private func removeView() {
-          let parentView = viewController.view
-          parentView?.isUserInteractionEnabled = true
-
-          animationView?.removeFromSuperview()
-          animationViewContainer?.removeFromSuperview()
-
-          animationViewContainer = nil
-          animationView = nil
-          visible = false
-
-          sendCallback()
-      }
+//    public func createView(location: String? = nil, remote: Bool? = nil, width: Int? = nil, height: Int? = nil, callbackId: String? = nil) -> Bool {
+//        if !visible {
+//                    self.callbackId = callbackId
+//                    let parentView = viewController.view
+//
+//                    createAnimationViewContainer()
+//                    do {
+//                        try createAnimationView(location: location, remote: remote, width: width, height: height)
+//                    } catch {
+//                        processInvalidURLError(error: error)
+//                    }
+//
+//                    animationViewContainer?.addSubview(animationView!)
+//                    parentView?.addSubview(animationViewContainer!)
+//
+//                    let cancelOnTap = getConfigValue("LottieCancelOnTap".lowercased()) as? NSString ?? "false"
+//                    if cancelOnTap.boolValue {
+//                        let gesture = UITapGestureRecognizer(target: self, action: #selector(destroyView(_:)))
+//                        animationViewContainer?.addGestureRecognizer(gesture)
+//                    }
+//
+//                    let hideTimeout = Double(getConfigValue("LottieHideTimeout".lowercased()) as? String ?? "0")!
+//                    if hideTimeout > 0 {
+//                        delayWithSeconds(hideTimeout) {
+//                            self.destroyView()
+//                        }
+//                    }
+//
+//                    playAnimation()
+//                    visible = true
+//                } else if callbackId != nil {
+//                    let result = CDVPluginResult.init(status: CDVCommandStatus_ERROR, messageAs: LottieSplashScreenError.animationAlreadyPlaying.localizedDescription)
+////                    commandDelegate.send(result, callbackId: callbackId)
+//                }
+//    }
     
-    public func createView(location: String? = nil, remote: Bool? = nil, width: Int? = nil, height: Int? = nil, callbackId: String? = nil) -> Bool {
-        if !visible {
-                    self.callbackId = callbackId
-                    let parentView = viewController.view
-
-                    createAnimationViewContainer()
-                    do {
-                        try createAnimationView(location: location, remote: remote, width: width, height: height)
-                    } catch {
-                        processInvalidURLError(error: error)
-                    }
-
-                    animationViewContainer?.addSubview(animationView!)
-                    parentView?.addSubview(animationViewContainer!)
-
-                    let cancelOnTap = getConfigValue("LottieCancelOnTap".lowercased()) as? NSString ?? "false"
-                    if cancelOnTap.boolValue {
-                        let gesture = UITapGestureRecognizer(target: self, action: #selector(destroyView(_:)))
-                        animationViewContainer?.addGestureRecognizer(gesture)
-                    }
-
-                    let hideTimeout = Double(getConfigValue("LottieHideTimeout".lowercased()) as? String ?? "0")!
-                    if hideTimeout > 0 {
-                        delayWithSeconds(hideTimeout) {
-                            self.destroyView()
-                        }
-                    }
-
-                    playAnimation()
-                    visible = true
-                } else if callbackId != nil {
-                    let result = CDVPluginResult.init(status: CDVCommandStatus_ERROR, messageAs: LottieSplashScreenError.animationAlreadyPlaying.localizedDescription)
-                    commandDelegate.send(result, callbackId: callbackId)
-                }
-    }
-    
-    private func createAnimationViewContainer() {
-        let parentView = viewController.view
-        parentView?.isUserInteractionEnabled = false
-
-        animationViewContainer = UIView(frame: (parentView?.bounds)!)
-        animationViewContainer?.layer.zPosition = 1
-
-        let backgroundColor = getUIModeDependentPreference(basePreferenceName: "LottieBackgroundColor", defaultValue: "#ffffff")
-
-        animationViewContainer?.autoresizingMask = [
-            .flexibleWidth, .flexibleHeight, .flexibleTopMargin, .flexibleLeftMargin, .flexibleBottomMargin, .flexibleRightMargin
-        ]
-        animationViewContainer?.backgroundColor = UIColor(hex: backgroundColor)
-    }
+//    private func createAnimationViewContainer() {
+//        let parentView = //viewController.view
+//        parentView?.isUserInteractionEnabled = false
+//
+//        animationViewContainer = UIView(frame: (parentView?.bounds)!)
+//        animationViewContainer?.layer.zPosition = 1
+//
+//        let backgroundColor = getUIModeDependentPreference(basePreferenceName: "LottieBackgroundColor", defaultValue: "#ffffff")
+//
+//        animationViewContainer?.autoresizingMask = [
+//            .flexibleWidth, .flexibleHeight, .flexibleTopMargin, .flexibleLeftMargin, .flexibleBottomMargin, .flexibleRightMargin
+//        ]
+//        animationViewContainer?.backgroundColor = UIColor(hex: backgroundColor)
+//    }
 
     private func createAnimationView(location: String? = nil, remote: Bool? = nil, width: Int? = nil, height: Int? = nil) throws {
         var animationLocation = ""
         if location != nil {
             animationLocation = location!
         } else {
-            animationLocation = getUIModeDependentPreference(basePreferenceName: "LottieAnimationLocation")
+//            animationLocation = getUIModeDependentPreference(basePreferenceName: "LottieAnimationLocation")
         }
 
         if isRemote(remote: remote) {
-            let cacheDisabled = (getConfigValue("LottieCacheDisabled".lowercased()]) as? NSString ?? "false").boolValue
+            let cacheDisabled = getConfig().getBoolean("LottieCacheDisabled", false)
             guard let url = URL(string: animationLocation) else { throw LottieSplashScreenError.invalidURL }
             animationView = LottieAnimationView(url: url, closure: { error in
                 if error == nil {
@@ -142,7 +142,7 @@ public class LottieSplashscreenPlugin: CAPPlugin {
 
         calculateAnimationSize(width: width, height: height)
 
-        let loop = (getConfigValue("LottieLoopAnimation".lowercased()) as? NSString ?? "false").boolValue
+        let loop = getConfig().getBoolean("LottieLiipAnimation", false)
         if loop {
             animationView?.loopMode = .loop
         }
@@ -156,8 +156,11 @@ public class LottieSplashscreenPlugin: CAPPlugin {
         let fullScreenzSize = UIScreen.main.bounds
         var animationWidth: CGFloat
         var animationHeight: CGFloat
+        
+        let lottieWidthPX =  Int(getConfig().getInt("LottieWidth".lowercased(), 200))
+        let lottieHeightPX =  Int(getConfig().getInt("LottieHeight".lowercased(), 200))
 
-        let useFullScreen = (getConfigValue("LottieFullScreen".lowercased()) as? NSString ?? "false").boolValue
+        let useFullScreen = getConfig().getBoolean("LottieFullScreen", false)
         if useFullScreen {
             var autoresizingMask: UIView.AutoresizingMask = [
                 .flexibleTopMargin, .flexibleLeftMargin, .flexibleBottomMargin, .flexibleRightMargin
@@ -174,23 +177,22 @@ public class LottieSplashscreenPlugin: CAPPlugin {
         } else {
             animationView?.autoresizingMask = [.flexibleTopMargin, .flexibleLeftMargin, .flexibleBottomMargin, .flexibleRightMargin]
 
-            let useRelativeSize = (getConfigValue("LottieRelativeSize".lowercased()) as? NSString ?? "false").boolValue
+            let useRelativeSize = getConfig().getBoolean("LottieRelativeSize", false);
             if useRelativeSize {
                 animationWidth = fullScreenzSize.width *
                     (width != nil ?
                         CGFloat(width!) :
-                        CGFloat(Float(getConfigValue("LottieWidth".lowercased()) as? String ?? "0.2")!))
+                        CGFloat(Float(getConfig().getString("LottieWidth".lowercased(), "0.2")!)!))
                 animationHeight = fullScreenzSize.height *
                     (height != nil ?
                         CGFloat(height!) :
-                        CGFloat(Float(getConfigValue("LottieHeight".lowercased()) as? String ?? "0.2")!))
+                        CGFloat(Float(getConfig().getString("LottieHeight".lowercased(), "0.2")!)!))
             } else {
+               
                 animationWidth = CGFloat(width != nil ?
-                    width! :
-                    Int(getConfigValue("LottieWidth".lowercased()) as? String ?? "200")!)
+                    width! : lottieWidthPX)
                 animationHeight = CGFloat(height != nil
-                    ? height! :
-                    Int(getConfigValue("LottieHeight".lowercased()) as? String ?? "200")!)
+                    ? height! : lottieHeightPX)
             }
         }
         animationView?.frame = CGRect(x: 0, y: 0, width: animationWidth, height: animationHeight)
@@ -203,14 +205,14 @@ public class LottieSplashscreenPlugin: CAPPlugin {
             if !finished {
                 event =  "lottieAnimationCancel"
             }
-            self.webViewEngine.evaluateJavaScript("document.dispatchEvent(new Event('\(event)'))", completionHandler: nil)
-            let hideAfterAnimationDone = (self.getConfigValue("LottieHideAfterAnimationEnd".lowercased()) as? NSString ?? "false").boolValue
+//            self.webViewEngine.evaluateJavaScript("document.dispatchEvent(new Event('\(event)'))", completionHandler: nil)
+            let hideAfterAnimationDone = self.getConfig().getBoolean("LottieHideAfterAnimationEnd", false)
             if hideAfterAnimationDone {
                 self.destroyView()
             }
             self.animationEnded = true
         }
-        self.webViewEngine.evaluateJavaScript("document.dispatchEvent(new Event('lottieAnimationStart'))", completionHandler: nil)
+//        self.webViewEngine.evaluateJavaScript("document.dispatchEvent(new Event('lottieAnimationStart'))", completionHandler: nil)
         animationEnded = false
         sendCallback()
     }
@@ -218,7 +220,7 @@ public class LottieSplashscreenPlugin: CAPPlugin {
     private func processInvalidURLError(error: Error) {
         if callbackId != nil {
             let result = CDVPluginResult.init(status: CDVCommandStatus_ERROR, messageAs: LottieSplashScreenError.invalidURL.localizedDescription)
-            commandDelegate.send(result, callbackId: callbackId)
+//            commandDelegate.send(result, callbackId: callbackId)
         } else {
             NSLog("Unexpected error: \(error.localizedDescription)")
         }
@@ -229,7 +231,7 @@ public class LottieSplashscreenPlugin: CAPPlugin {
         if remote != nil {
             useRemote = remote!
         } else {
-            useRemote = (getConfigValue("LottieRemoteEnabled".lowercased()) as? NSString ?? "false").boolValue
+            useRemote = getConfig().getBoolean("LottieRemoteEnabled", false)
         }
         return useRemote
     }
@@ -237,7 +239,7 @@ public class LottieSplashscreenPlugin: CAPPlugin {
     private func sendCallback() {
         if callbackId != nil {
             let result = CDVPluginResult.init(status: CDVCommandStatus_OK)
-            commandDelegate.send(result, callbackId: callbackId)
+//            commandDelegate.send(result, callbackId: callbackId)
             callbackId = nil
         }
     }
@@ -258,21 +260,21 @@ public class LottieSplashscreenPlugin: CAPPlugin {
         )
     }
 
-    private func getUIModeDependentPreference(basePreferenceName: String, defaultValue: String = "") -> String {
-        var preferenceValue = ""
-        if #available(iOS 12.0, *) {
-            if viewController.traitCollection.userInterfaceStyle == .dark {
-                preferenceValue = getConfigValue((basePreferenceName + "Dark").lowercased()) as? String ?? defaultValue
-            } else {
-                preferenceValue = getConfigValue((basePreferenceName + "Light").lowercased()) as? String ?? defaultValue
-            }
-        }
-
-        if preferenceValue.isEmpty {
-            preferenceValue = getConfigValue(basePreferenceName.lowercased()) as? String ?? defaultValue
-        }
-        return preferenceValue
-    }
+//    private func getUIModeDependentPreference(basePreferenceName: String, defaultValue: String = "") -> String {
+//        var preferenceValue = ""
+//        if #available(iOS 12.0, *) {
+//            if viewController.traitCollection.userInterfaceStyle == .dark {
+//                preferenceValue = getConfigValue((basePreferenceName + "Dark").lowercased()) as? String ?? defaultValue
+//            } else {
+//                preferenceValue = getConfigValue((basePreferenceName + "Light").lowercased()) as? String ?? defaultValue
+//            }
+//        }
+//
+//        if preferenceValue.isEmpty {
+//            preferenceValue = getConfigValue(basePreferenceName.lowercased()) as? String ?? defaultValue
+//        }
+//        return preferenceValue
+//    }
 
     @objc private func deviceOrientationChanged() {
         animationView?.center = CGPoint(x: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)

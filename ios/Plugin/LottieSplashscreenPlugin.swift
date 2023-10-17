@@ -226,7 +226,7 @@ public class LottieSplashscreenPlugin: CAPPlugin {
 
     private func processInvalidURLError(error: Error) {
         if callbackId != nil {
-            let result = CDVPluginResult.init(status: CDVCommandStatus_ERROR, messageAs: LottieSplashScreenError.invalidURL.localizedDescription)
+            _ = CDVPluginResult.init(status: CDVCommandStatus_ERROR, messageAs: LottieSplashScreenError.invalidURL.localizedDescription)
 //            commandDelegate.send(result, callbackId: callbackId)
         } else {
             NSLog("Unexpected error: \(error.localizedDescription)")
@@ -245,7 +245,7 @@ public class LottieSplashscreenPlugin: CAPPlugin {
 
     private func sendCallback() {
         if callbackId != nil {
-            let result = CDVPluginResult.init(status: CDVCommandStatus_OK)
+            _ = CDVPluginResult.init(status: CDVCommandStatus_OK)
 //            commandDelegate.send(result, callbackId: callbackId)
             callbackId = nil
         }
@@ -323,8 +323,8 @@ extension UIColor {
             colorString += "FF"
         }
 
-        var rgbValue: CUnsignedInt = 0
-        Scanner(string: colorString).scanHexInt32(&rgbValue)
+        var rgbValue: UInt64 = 0
+        Scanner(string: colorString).scanHexInt64(&rgbValue)
 
         self.init(
             red: CGFloat((rgbValue & 0xFF00_0000) >> 24) / 255.0,

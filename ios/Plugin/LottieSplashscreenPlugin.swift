@@ -30,7 +30,7 @@ public class LottieSplashscreenPlugin: CAPPlugin {
     }
     
     @objc func pageDidLoad() {
-        let autoHide = getConfig().getBoolean("LottieAutoHideSplashScreen".lowercased(), false)
+        let autoHide = getConfig().getBoolean("LottieAutoHideSplashScreen", false)
         if autoHide {
             destroyView()
         }
@@ -44,7 +44,7 @@ public class LottieSplashscreenPlugin: CAPPlugin {
     
     @objc private func destroyView(_: UITapGestureRecognizer? = nil) {
         if visible {
-            let fadeOutDuation = Double(getConfig().getString("LottieFadeOutDuration".lowercased(), "0")!)!
+            let fadeOutDuation = Double(getConfig().getString("LottieFadeOutDuration", "0")!)!
             if fadeOutDuation > 0 {
                 UIView.animate(withDuration: fadeOutDuation, animations: {
                     self.animationView?.alpha = 0.0
@@ -58,60 +58,63 @@ public class LottieSplashscreenPlugin: CAPPlugin {
     }
 
     private func removeView() {
-          let parentView = UIApplication.shared.windows.filter {$0.isKeyWindow}.first!
-          parentView.isUserInteractionEnabled = true
+        let visibleViewController = UIApplication.shared.windows[0]
+        visibleViewController.isUserInteractionEnabled = true;
+       
+        animationView?.removeFromSuperview()
+        animationViewContainer?.removeFromSuperview()
 
-          animationView?.removeFromSuperview()
-          animationViewContainer?.removeFromSuperview()
-
-          animationViewContainer = nil
-          animationView = nil
-          visible = false
-
-          sendCallback()
+        animationViewContainer = nil
+        animationView = nil
+        visible = false
+        print("*****\n\nAnimation removed\n\n***")
+        sendCallback()
       }
     
     public func createView(location: String? = nil, remote: Bool? = nil, width: Int? = nil, height: Int? = nil, callbackId: String? = nil) {
         if !visible {
-                    self.callbackId = callbackId
-                    let parentView = UIApplication.shared.windows.filter {$0.isKeyWindow}.first!
-
-                    createAnimationViewContainer()
-                    do {
-                        try createAnimationView(location: location, remote: remote, width: width, height: height)
-                    } catch {
-                        processInvalidURLError(error: error)
-                    }
-
-                    animationViewContainer?.addSubview(animationView!)
-                    parentView.addSubview(animationViewContainer!)
-
+            self.callbackId = callbackId
+            
+            createAnimationViewContainer()
+            do {
+                try createAnimationView(location: location, remote: remote, width: width, height: height)
+            } catch {
+                processInvalidURLError(error: error)
+            }
+            
+            print("*****\n\n\n\nAdding animation view\n\n\n\n******")
+            animationViewContainer?.addSubview(animationView!)
+            let visibleViewController = UIApplication.shared.windows[0]
+            
+            visibleViewController.addSubview(animationViewContainer!);
+            
             let cancelOnTap = getConfig().getBoolean("LottieCancelOnTap", false)
-                    if cancelOnTap {
-                        let gesture = UITapGestureRecognizer(target: self, action: #selector(destroyView(_:)))
-                        animationViewContainer?.addGestureRecognizer(gesture)
-                    }
-
-            let hideTimeout = Double(getConfig().getString("LottieHideTimeout".lowercased(), "0")!)!
-                    if hideTimeout > 0 {
-                        delayWithSeconds(hideTimeout) {
-                            self.destroyView()
-                        }
-                    }
-
-                    playAnimation()
-                    visible = true
-                } else if callbackId != nil {
-                    _ = CAPPluginCallError.init(message:LottieSplashScreenError.animationAlreadyPlaying.localizedDescription, code:nil, error:nil, data:nil)
-                    
+            if cancelOnTap {
+                let gesture = UITapGestureRecognizer(target: self, action: #selector(destroyView(_:)))
+                animationViewContainer?.addGestureRecognizer(gesture)
+            }
+            
+            let hideTimeout = Double(getConfig().getString("LottieHideTimeout", "0")!)!
+            if hideTimeout > 0 {
+                delayWithSeconds(hideTimeout) {
+                    self.destroyView()
                 }
+            }
+            
+            playAnimation()
+            visible = true
+        } else if callbackId != nil {
+            _ = CAPPluginCallError.init(message:LottieSplashScreenError.animationAlreadyPlaying.localizedDescription, code:nil, error:nil, data:nil)
+            
+        }
     }
     
     private func createAnimationViewContainer() {
-        let parentView = UIApplication.shared.windows.filter {$0.isKeyWindow}.first!
-        parentView.isUserInteractionEnabled = false
-
-        animationViewContainer = UIView(frame: (parentView.bounds))
+    
+        let visibleViewController = UIApplication.shared.windows[0]
+        visibleViewController.isUserInteractionEnabled = false;
+        animationViewContainer = UIView(frame: (visibleViewController.bounds))
+        
         animationViewContainer?.layer.zPosition = 1
 
         let backgroundColor = getUIModeDependentPreference(basePreferenceName: "LottieBackgroundColor", defaultValue: "#ffffff")
@@ -166,21 +169,19 @@ public class LottieSplashscreenPlugin: CAPPlugin {
         
         let useFullScreen = getConfig().getBoolean("LottieFullScreen", false)
         if useFullScreen {
-            let appInterfaceOrientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation;
             var autoresizingMask: UIView.AutoresizingMask = [
                 .flexibleTopMargin, .flexibleLeftMargin, .flexibleBottomMargin, .flexibleRightMargin
             ]
 
-            let portrait = appInterfaceOrientation?.isPortrait != nil && appInterfaceOrientation!.isPortrait ||
-            appInterfaceOrientation! == UIInterfaceOrientation.portraitUpsideDown
+            let portrait = UIWindow.isPortrait || UIWindow.isPortraitUpsideDown
             autoresizingMask.insert(portrait ? .flexibleWidth : .flexibleHeight)
 
             animationView?.autoresizingMask = autoresizingMask
             animationWidth = fullScreenzSize.width
             animationHeight = fullScreenzSize.height
         } else {
-            let lottieWidthRelative = getConfig().getString("LottieWidth".lowercased(), "0.2")
-            let lottieHeightRelative = getConfig().getString("LottieHeight".lowercased(), "0.2")
+            let lottieWidthRelative = getConfig().getString("LottieWidth", "0.2")
+            let lottieHeightRelative = getConfig().getString("LottieHeight", "0.2")
             animationView?.autoresizingMask = [.flexibleTopMargin, .flexibleLeftMargin, .flexibleBottomMargin, .flexibleRightMargin]
 
             let useRelativeSize = getConfig().getBoolean("LottieRelativeSize", false);
@@ -194,8 +195,8 @@ public class LottieSplashscreenPlugin: CAPPlugin {
                         CGFloat(height!) :
                         CGFloat(Float(lottieHeightRelative!)!))
             } else {
-                let lottieWidthPX =  Int(getConfig().getInt("LottieWidth".lowercased(), 200))
-                let lottieHeightPX =  Int(getConfig().getInt("LottieHeight".lowercased(), 200))
+                let lottieWidthPX =  Int(getConfig().getInt("LottieWidth", 200))
+                let lottieHeightPX =  Int(getConfig().getInt("LottieHeight", 200))
                 animationWidth = CGFloat(width != nil ?
                     width! : lottieWidthPX)
                 animationHeight = CGFloat(height != nil
@@ -276,9 +277,9 @@ public class LottieSplashscreenPlugin: CAPPlugin {
                 preferenceValue = getConfig().getString(basePreferenceName + "Light", defaultValue)!
             }
         }
-
+        
         if preferenceValue.isEmpty {
-            preferenceValue = getConfig().getString(basePreferenceName.lowercased(), defaultValue)!
+            preferenceValue = getConfig().getString(basePreferenceName, defaultValue)!
        }
         return preferenceValue
     }
@@ -305,6 +306,72 @@ extension LottieSplashScreenError: LocalizedError {
 }
 
 
+extension UIWindow {
+    
+    /// Returns the currently visible view controller if any reachable within the window.
+    public var visibleViewController: UIViewController? {
+        return UIWindow.visibleViewController(from: rootViewController)
+    }
+
+    /// Recursively follows navigation controllers, tab bar controllers and modal presented view controllers starting
+    /// from the given view controller to find the currently visible view controller.
+    ///
+    /// - Parameters:
+    ///   - viewController: The view controller to start the recursive search from.
+    /// - Returns: The view controller that is most probably visible on screen right now.
+    public static func visibleViewController(from viewController: UIViewController?) -> UIViewController? {
+        switch viewController {
+        case let navigationController as UINavigationController:
+            return UIWindow.visibleViewController(from: navigationController.visibleViewController ?? navigationController.topViewController)
+
+        case let tabBarController as UITabBarController:
+            return UIWindow.visibleViewController(from: tabBarController.selectedViewController)
+
+        case let presentingViewController where viewController?.presentedViewController != nil:
+            return UIWindow.visibleViewController(from: presentingViewController?.presentedViewController)
+
+        default:
+            return viewController
+        }
+    }
+    
+    static var isLandscape: Bool {
+        if #available(iOS 13.0, *) {
+            return UIApplication.shared.windows
+                .first?
+                .windowScene?
+                .interfaceOrientation
+                .isLandscape ?? false
+        } else {
+            return UIApplication.shared.statusBarOrientation.isLandscape
+        }
+    }
+
+    static var isPortrait: Bool {
+        if #available(iOS 13.0, *) {
+            return UIApplication.shared.windows
+                .first?
+                .windowScene?
+                .interfaceOrientation
+                .isPortrait ?? false
+        } else {
+            return UIApplication.shared.statusBarOrientation.isPortrait
+        }
+    }
+
+    static var isPortraitUpsideDown: Bool {
+
+        if #available(iOS 13.0, *) {
+            return UIApplication.shared.windows
+                .first?
+                .windowScene?
+                .interfaceOrientation == UIInterfaceOrientation.portraitUpsideDown
+        } else {
+            return UIApplication.shared.statusBarOrientation == UIInterfaceOrientation.portraitUpsideDown
+        }
+        
+    }
+}
 extension UIColor {
     convenience init(hex: String?) {
         let hexString = hex ?? "FFFFFFFF"

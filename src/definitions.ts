@@ -223,6 +223,15 @@ declare module '@capacitor/cli' {
        * @example true
        */
       LottieCacheDisabled?: boolean;
+
+      /**
+       * Enables Merged Paths. If your lottie file is not rendering correctly, try set this to true.
+       *
+       * @since 1.0.0
+       * @default false
+       * @example true
+       */
+      LottieEnableMergePaths?: boolean;
     };
   }
 }

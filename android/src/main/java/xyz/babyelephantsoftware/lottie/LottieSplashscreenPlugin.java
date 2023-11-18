@@ -11,10 +11,13 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.webkit.WebView;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import com.airbnb.lottie.LottieAnimationView;
 import com.airbnb.lottie.LottieComposition;
@@ -28,6 +31,7 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import java.util.ArrayList;
 import java.util.Locale;
 
 @CapacitorPlugin(name = "LottieSplashscreen")
@@ -119,7 +123,8 @@ public class LottieSplashscreenPlugin extends Plugin {
         String backgroundColorStr = getUIModeDependentPreference("LottieBackgroundColor", "#ffffff");
         int color = ColorHelper.parseColor(backgroundColorStr);
         animationView.setBackgroundColor(color);
-
+        animationView.setApplyingOpacityToLayersEnabled(true);
+        //        Log.e(LOG_TAG,animationView.);
         boolean fullScreen = getConfig().getBoolean("LottieFullScreen", false);
         splashDialog =
             new Dialog(context, fullScreen ? android.R.style.Theme_NoTitleBar_Fullscreen : android.R.style.Theme_Translucent_NoTitleBar);
@@ -152,37 +157,40 @@ public class LottieSplashscreenPlugin extends Plugin {
         }
     }
 
-    private void addAnimationListeners() {
-        //        animationView.addAnimatorListener(new Animator.AnimatorListener() {
-        //            @Override
-        //            public void onAnimationStart(Animator animation) {
-        //                webView.evaluateJavascript("document.dispatchEvent(new Event('lottieAnimationStart'))", null);
-        //            }
-        //
-        //            @Override
-        //            public void onAnimationEnd(Animator animation) {
-        //                webView.evaluateJavascript("document.dispatchEvent(new Event('lottieAnimationEnd'))", null);
-        //                boolean hideAfterAnimationDone = getConfig().getBoolean("LottieHideAfterAnimationEnd", false);
-        //                if (hideAfterAnimationDone) {
-        //                    dismissDialog();
-        //                }
-        //                animationEnded = true;
-        //            }
-        //
-        //            @Override
-        //            public void onAnimationCancel(Animator animation) {
-        //                webView.evaluateJavascript("document.dispatchEvent(new Event('lottieAnimationCancel'))", null);
-        //            }
-        //
-        //            @Override
-        //            public void onAnimationRepeat(Animator animation) {
-        //                webView.evaluateJavascript("document.dispatchEvent(new Event('lottieAnimationRepeat'))", null);
-        //            }
-        //        });
+    private void addAnimationListeners(final PluginCall callbackContext) {
+        animationView.addAnimatorListener(
+            new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    notifyListeners("lottieAnimationStart", null);
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    notifyListeners("lottieAnimationEnd", null);
+                    boolean hideAfterAnimationDone = getConfig().getBoolean("LottieHideAfterAnimationEnd", false);
+                    if (hideAfterAnimationDone) {
+                        dismissDialog(callbackContext);
+                    }
+                    animationEnded = true;
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animation) {
+                    notifyListeners("lottieAnimationCancel", null);
+                }
+
+                @Override
+                public void onAnimationRepeat(Animator animation) {
+                    notifyListeners("lottieAnimationRepeat", null);
+                }
+            }
+        );
     }
 
     public void dismissDialog(final PluginCall callbackContext) {
         int fadeDuration = getConfig().getInt("LottieFadeOutDuration", 0);
+
         if (fadeDuration > 0) {
             AlphaAnimation fadeOut = new AlphaAnimation(1f, 0f);
             fadeOut.setDuration((long) fadeDuration);
@@ -210,6 +218,10 @@ public class LottieSplashscreenPlugin extends Plugin {
                 }
             );
         } else {
+            ArrayList<String> warnings = animationView.getComposition().getWarnings();
+            Log.e(LOG_TAG, "THIS IS A TEST TO SEE********************");
+            warnings.forEach(w -> Log.e(LOG_TAG, w));
+            Log.e(LOG_TAG, "*****************************************");
             splashDialog.dismiss();
             if (callbackContext != null) {
                 callbackContext.success();
@@ -299,7 +311,7 @@ public class LottieSplashscreenPlugin extends Plugin {
                             configureAnimationView(context);
                             calculateAnimationSize(width, height);
                             splashDialog.show();
-                            addAnimationListeners();
+                            addAnimationListeners(callbackContext);
                             animationView.playAnimation();
                             animationEnded = false;
 

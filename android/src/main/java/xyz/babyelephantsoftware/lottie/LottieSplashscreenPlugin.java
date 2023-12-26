@@ -63,10 +63,10 @@ public class LottieSplashscreenPlugin extends Plugin {
     }
 
     private void createLottieComposition(
-        boolean remoteEnabled,
-        Context context,
-        String animationLocation,
-        final PluginCall callbackContext
+            boolean remoteEnabled,
+            Context context,
+            String animationLocation,
+            final PluginCall callbackContext
     ) {
         LottieTask<LottieComposition> comp;
         boolean cacheDisabled = getConfig().getBoolean("LottieCacheDisabled", false);
@@ -78,40 +78,38 @@ public class LottieSplashscreenPlugin extends Plugin {
             String cacheKey = cacheDisabled ? null : "asset_" + animationLocation;
             comp = LottieCompositionFactory.fromAsset(context, animationLocation, cacheKey);
             String imagesFolder = getConfig()
-                .getString("LottieImagesLocation", animationLocation.substring(0, animationLocation.lastIndexOf('/')));
+                    .getString("LottieImagesLocation", animationLocation.substring(0, animationLocation.lastIndexOf('/')));
             animationView.setImageAssetsFolder(imagesFolder);
         }
 
         comp
-            .addListener(
-                new LottieListener<LottieComposition>() {
-                    @Override
-                    public void onResult(LottieComposition result) {
-                        animationView.setComposition(result);
-                    }
-                }
-            )
-            .addFailureListener(
-                new LottieListener<Throwable>() {
-                    @Override
-                    public void onResult(Throwable result) {
-                        Log.e(LOG_TAG, "Animation not loadable!");
-                        Log.e(LOG_TAG, Log.getStackTraceString(result));
-                        destroyView(callbackContext);
-                        if (callbackContext != null) {
-                            LottieSplashScreenInvalidURLException invalidURLException = new LottieSplashScreenInvalidURLException(
-                                "The provided animation is invalid"
-                            );
-                            callbackContext.error(invalidURLException.getMessage());
+                .addListener(
+                        new LottieListener<LottieComposition>() {
+                            @Override
+                            public void onResult(LottieComposition result) {
+                                animationView.setComposition(result);
+                            }
                         }
-                    }
-                }
-            );
+                )
+                .addFailureListener(
+                        new LottieListener<Throwable>() {
+                            @Override
+                            public void onResult(Throwable result) {
+                                Log.e(LOG_TAG, "Animation not loadable!");
+                                Log.e(LOG_TAG, Log.getStackTraceString(result));
+                                destroyView(callbackContext);
+                                if (callbackContext != null) {
+                                    LottieSplashScreenInvalidURLException invalidURLException = new LottieSplashScreenInvalidURLException(
+                                            "The provided animation is invalid"
+                                    );
+                                    callbackContext.error(invalidURLException.getMessage());
+                                }
+                            }
+                        }
+                );
     }
 
     private void configureAnimationView(Context context) {
-        animationView.enableMergePathsForKitKatAndAbove(true);
-
         if (getConfig().getBoolean("LottieLoopAnimation", false)) {
             animationView.setRepeatCount(LottieDrawable.INFINITE);
         }
@@ -127,7 +125,7 @@ public class LottieSplashscreenPlugin extends Plugin {
         //        Log.e(LOG_TAG,animationView.);
         boolean fullScreen = getConfig().getBoolean("LottieFullScreen", false);
         splashDialog =
-            new Dialog(context, fullScreen ? android.R.style.Theme_NoTitleBar_Fullscreen : android.R.style.Theme_Translucent_NoTitleBar);
+                new Dialog(context, fullScreen ? android.R.style.Theme_NoTitleBar_Fullscreen : android.R.style.Theme_Translucent_NoTitleBar);
         splashDialog.getWindow().setBackgroundDrawable(new ColorDrawable(color));
         splashDialog.setContentView(animationView);
         splashDialog.setCancelable(false);
@@ -140,51 +138,51 @@ public class LottieSplashscreenPlugin extends Plugin {
             if (relativeSize) {
                 DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
                 int animationWidth = (int) (
-                    metrics.widthPixels * (width != null ? width : Double.parseDouble(getConfig().getString("LottieWidth", "0.2")))
+                        metrics.widthPixels * (width != null ? width : Double.parseDouble(getConfig().getString("LottieWidth", "0.2")))
                 );
                 int animationHeight = (int) (
-                    metrics.heightPixels * (height != null ? height : Double.parseDouble(getConfig().getString("LottieHeight", "0.2")))
+                        metrics.heightPixels * (height != null ? height : Double.parseDouble(getConfig().getString("LottieHeight", "0.2")))
                 );
                 splashDialog.getWindow().setLayout(animationWidth, animationHeight);
             } else {
                 splashDialog
-                    .getWindow()
-                    .setLayout(
-                        convertPixelsToDp(width != null ? width : Double.parseDouble(getConfig().getString("LottieWidth", "200.0"))),
-                        convertPixelsToDp(height != null ? height : Double.parseDouble(getConfig().getString("LottieHeight", "200.0")))
-                    );
+                        .getWindow()
+                        .setLayout(
+                                convertPixelsToDp(width != null ? width : Double.parseDouble(getConfig().getString("LottieWidth", "200.0"))),
+                                convertPixelsToDp(height != null ? height : Double.parseDouble(getConfig().getString("LottieHeight", "200.0")))
+                        );
             }
         }
     }
 
     private void addAnimationListeners(final PluginCall callbackContext) {
         animationView.addAnimatorListener(
-            new Animator.AnimatorListener() {
-                @Override
-                public void onAnimationStart(Animator animation) {
-                    notifyListeners("lottieAnimationStart", null);
-                }
-
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    notifyListeners("lottieAnimationEnd", null);
-                    boolean hideAfterAnimationDone = getConfig().getBoolean("LottieHideAfterAnimationEnd", false);
-                    if (hideAfterAnimationDone) {
-                        dismissDialog(callbackContext);
+                new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                        notifyListeners("lottieAnimationStart", null);
                     }
-                    animationEnded = true;
-                }
 
-                @Override
-                public void onAnimationCancel(Animator animation) {
-                    notifyListeners("lottieAnimationCancel", null);
-                }
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        notifyListeners("lottieAnimationEnd", null);
+                        boolean hideAfterAnimationDone = getConfig().getBoolean("LottieHideAfterAnimationEnd", false);
+                        if (hideAfterAnimationDone) {
+                            dismissDialog(callbackContext);
+                        }
+                        animationEnded = true;
+                    }
 
-                @Override
-                public void onAnimationRepeat(Animator animation) {
-                    notifyListeners("lottieAnimationRepeat", null);
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+                        notifyListeners("lottieAnimationCancel", null);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+                        notifyListeners("lottieAnimationRepeat", null);
+                    }
                 }
-            }
         );
     }
 
@@ -197,25 +195,25 @@ public class LottieSplashscreenPlugin extends Plugin {
             animationView.setAnimation(fadeOut);
             animationView.startAnimation(fadeOut);
             fadeOut.setAnimationListener(
-                new Animation.AnimationListener() {
-                    @Override
-                    public void onAnimationStart(Animation animation) {
-                        // Not implemented
-                    }
+                    new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+                            // Not implemented
+                        }
 
-                    @Override
-                    public void onAnimationEnd(Animation animation) {
-                        splashDialog.dismiss();
-                        if (callbackContext != null) {
-                            callbackContext.success();
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+                            splashDialog.dismiss();
+                            if (callbackContext != null) {
+                                callbackContext.success();
+                            }
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+                            // Not implemented
                         }
                     }
-
-                    @Override
-                    public void onAnimationRepeat(Animation animation) {
-                        // Not implemented
-                    }
-                }
             );
         } else {
             ArrayList<String> warnings = animationView.getComposition().getWarnings();
@@ -260,78 +258,80 @@ public class LottieSplashscreenPlugin extends Plugin {
 
     private void destroyView(final PluginCall callbackContext) {
         getActivity()
-            .runOnUiThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        animationView.cancelAnimation();
-                        if (splashDialog != null && splashDialog.isShowing()) {
-                            dismissDialog(callbackContext);
+                .runOnUiThread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                animationView.cancelAnimation();
+                                if (splashDialog != null && splashDialog.isShowing()) {
+                                    dismissDialog(callbackContext);
+                                }
+                            }
                         }
-                    }
-                }
-            );
+                );
     }
 
     private void createView(String location, Boolean remote, Double width, Double height, PluginCall callbackContext)
-        throws LottieSplashScreenAnimationAlreadyPlayingException, LottieSplashScreenInvalidURLException {
+            throws LottieSplashScreenAnimationAlreadyPlayingException, LottieSplashScreenInvalidURLException {
         if (splashDialog != null && splashDialog.isShowing()) {
             throw new LottieSplashScreenAnimationAlreadyPlayingException(
-                "An animation is already playing, please first hide the current one"
+                    "An animation is already playing, please first hide the current one"
             );
         }
         getActivity()
-            .runOnUiThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!getActivity().isFinishing()) {
-                            Context context = getBridge().getContext();
+                .runOnUiThread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                if (!getActivity().isFinishing()) {
+                                    Context context = getBridge().getContext();
 
-                            animationView = new LottieAnimationView(context);
-                            boolean useHardwareAcceleration = remote != null
-                                ? remote
-                                : getConfig().getBoolean("LottieEnableHardwareAcceleration", false);
-                            if (useHardwareAcceleration) {
-                                animationView.setRenderMode(RenderMode.HARDWARE);
-                            }
+                                    animationView = new LottieAnimationView(context);
+                                    boolean useHardwareAcceleration = remote != null
+                                            ? remote
+                                            : getConfig().getBoolean("LottieEnableHardwareAcceleration", false);
+                                    if (useHardwareAcceleration) {
+                                        animationView.setRenderMode(RenderMode.HARDWARE);
+                                    }
 
-                            boolean remoteEnabled = remote != null ? remote : getConfig().getBoolean("LottieRemoteEnabled", false);
-                            String animationLocation = getAnimationLocation(location);
+                                    boolean remoteEnabled = remote != null ? remote : getConfig().getBoolean("LottieRemoteEnabled", false);
+                                    String animationLocation = getAnimationLocation(location);
 
-                            if (animationLocation.isEmpty()) {
-                                Log.e(LOG_TAG, "LottieAnimationLocation has to be configured!");
-                                destroyView(null);
-                                String exceptionMessage = "The provided animation is invalid";
-                                callbackContext.reject(exceptionMessage);
-                                return;
-                            }
+                                    if (animationLocation.isEmpty()) {
+                                        Log.e(LOG_TAG, "LottieAnimationLocation has to be configured!");
+                                        destroyView(null);
+                                        String exceptionMessage = "The provided animation is invalid";
+                                        callbackContext.reject(exceptionMessage);
+                                        return;
+                                    }
+                                    if(getConfig().getBoolean("LottieEnableMergePaths", false))
+                                        animationView.enableMergePathsForKitKatAndAbove(true);
 
-                            createLottieComposition(remoteEnabled, context, animationLocation, callbackContext);
-                            configureAnimationView(context);
-                            calculateAnimationSize(width, height);
-                            splashDialog.show();
-                            addAnimationListeners(callbackContext);
-                            animationView.playAnimation();
-                            animationEnded = false;
+                                    createLottieComposition(remoteEnabled, context, animationLocation, callbackContext);
+                                    configureAnimationView(context);
+                                    calculateAnimationSize(width, height);
+                                    splashDialog.show();
+                                    addAnimationListeners(callbackContext);
+                                    animationView.playAnimation();
+                                    animationEnded = false;
 
-                            int delay = getConfig().getInt("LottieHideTimeout", 0);
-                            if (delay > 0) {
-                                new Handler(Looper.getMainLooper())
-                                    .postDelayed(
-                                        new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                dismissDialog(null);
-                                            }
-                                        },
-                                        delay
-                                    );
+                                    int delay = getConfig().getInt("LottieHideTimeout", 0);
+                                    if (delay > 0) {
+                                        new Handler(Looper.getMainLooper())
+                                                .postDelayed(
+                                                        new Runnable() {
+                                                            @Override
+                                                            public void run() {
+                                                                dismissDialog(null);
+                                                            }
+                                                        },
+                                                        delay
+                                                );
+                                    }
+                                }
                             }
                         }
-                    }
-                }
-            );
+                );
     }
 
     @PluginMethod

@@ -129,7 +129,7 @@ declare module '@capacitor/cli' {
        * Can be used with alpha values, too. (For more information see the 8 digits notation of RGB notation)
        *
        * @since 1.0.0
-       * @default #ffffff
+       * @default #00000
        * @example "#FF9900"
        */
       LottieBackgroundColor?: string;
